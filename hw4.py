@@ -190,6 +190,8 @@ def main():
     
     #case 4: the customer successfully places an order
 
+    #test add + commit
+
     pass
 
 if __name__ == "__main__":
