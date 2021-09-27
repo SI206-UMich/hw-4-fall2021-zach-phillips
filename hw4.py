@@ -204,7 +204,6 @@ class TestAllMethods(unittest.TestCase):
         inventory = {"Burger": 12, "Fruit": 10, "Split": 15}
         customer5 = Customer("Zach", 1)
         stall5 = Stall("Ban + Burg", inventory, 100)
-        
         cashier5 = Cashier("B&B")
         cashier5.add_stall(stall5)
         
@@ -227,7 +226,19 @@ class TestAllMethods(unittest.TestCase):
 ### Write main function
 def main():
     #Create different objects 
-
+    inventory1 = {"Cheese": 2, "Tomato": 5, "Lettuce": 8}
+    inventory2 = {"Lamb": 10, "Steak": 11, "Fish": 2}
+    customerA = Customer("Zach", 10)
+    customerB = Customer("Josh", 80)
+    customerC = Customer("Anna", 40)
+    stallA = Stall("AA", inventory1, 5)
+    stallB = Stall("BB", inventory2, 30)
+    stallC = Stall("CC", inventory2, 80)
+    cashierA = Cashier("First")
+    cashierA.add_stall(stallA)
+    cashierA.add_stall(stallB)
+    cashierB = Cashier("Second")
+    cashierB.add_stall(stallA)
     #Try all cases in the validate_order function
     #Below you need to have *each customer instance* try the four cases
     #case 1: the cashier does not have the stall 
@@ -240,7 +251,6 @@ def main():
 
     #test add + commit
 
-    pass
 
 if __name__ == "__main__":
 	main()
