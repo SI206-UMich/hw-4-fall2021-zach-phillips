@@ -227,7 +227,9 @@ class TestAllMethods(unittest.TestCase):
         self.assertEqual(stall5.inventory["Burger"], 3)
 		# case 3: check if the cashier can order item from that stall
         self.assertEqual(customer5.wallet, 1)
+        self.assertEqual(stall5.inventory["Burger"], 3)
         customer5.validate_order(cashier5, stall6, "Cheese", 1)
+        self.assertEqual(stall5.inventory["Burger"], 3)
         self.assertEqual(customer5.wallet, 1)
 
         self.assertEqual(customer6.wallet, 1000)
