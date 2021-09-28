@@ -16,11 +16,11 @@ class Customer:
     # The customer orders the food and there could be different cases   
     def validate_order(self, cashier, stall, item_name, quantity):
         if not(cashier.has_stall(stall)):
-            return "Sorry, we don't have that vendor stall. Please try a different one."
+            print("Sorry, we don't have that vendor stall. Please try a different one.")
         elif not(stall.has_item(item_name, quantity)):  
-            return "Our stall has run out of " + item_name + " :( Please try a different stall!"
+            print("Our stall has run out of " + item_name + " :( Please try a different stall!")
         elif self.wallet < stall.compute_cost(quantity): 
-            return "Don't have enough money for that :( Please reload more money!"
+            print("Don't have enough money for that :( Please reload more money!")
         else:
             bill = cashier.place_order(stall, item_name, quantity) 
             self.submit_order(cashier, stall, bill) 
@@ -99,6 +99,8 @@ class Stall:
     def stock_up(self, food_name, quantity):
         if food_name in self.inventory:
             self.inventory[food_name] += quantity
+        else:
+            self.inventory[food_name] = quantity
 
     def compute_cost(self, quantity):
         return self.cost * quantity
@@ -226,12 +228,12 @@ class TestAllMethods(unittest.TestCase):
 ### Write main function
 def main():
     #Create different objects 
-    inventory1 = {"Cheese": 2, "Tomato": 5, "Lettuce": 8}
+    inventory1 = {"Cheese": 2, "Tomato": 5, "Lettuce": 888}
     inventory2 = {"Lamb": 10, "Steak": 11, "Fish": 2}
     customerA = Customer("Zach", 10)
     customerB = Customer("Josh", 80)
     customerC = Customer("Anna", 40)
-    stallA = Stall("AA", inventory1, 5)
+    stallA = Stall("AA", inventory1, 50)
     stallB = Stall("BB", inventory2, 30)
     stallC = Stall("CC", inventory2, 80)
     cashierA = Cashier("First")
@@ -241,14 +243,24 @@ def main():
     cashierB.add_stall(stallA)
     #Try all cases in the validate_order function
     #Below you need to have *each customer instance* try the four cases
-    #case 1: the cashier does not have the stall 
-    
-    #case 2: the casher has the stall, but not enough ordered food or the ordered food item
-    
-    #case 3: the customer does not have enough money to pay for the order: 
-    
-    #case 4: the customer successfully places an order
 
+    #case 1: the cashier does not have the stall 
+    customerA.validate_order(cashierA, stallC, "Banana", 3)
+    customerB.validate_order(cashierB, stallB, "Beef", 100)
+    customerC.validate_order(cashierB, stallC, "Paper", 1)
+    #case 2: the casher has the stall, but not enough ordered food or the ordered food item
+    customerA.validate_order(cashierA, stallB, "Lamb", 100)
+    customerB.validate_order(cashierB, stallA, "Onion", 3)
+    customerC.validate_order(cashierB, stallA, "Tomato", 6)
+    #case 3: the customer does not have enough money to pay for the order: 
+    customerA.validate_order(cashierA, stallB, "Lamb", 8)
+    customerB.validate_order(cashierA, stallB, "Lamb", 7)
+    customerC.validate_order(cashierA, stallB, "Lamb", 7)
+
+    #case 4: the customer successfully places an order
+    customerA.validate_order(cashierA, stallB, "Lamb", 8)
+    customerB.validate_order(cashierA, stallB, "Lamb", 7)
+    customerC.validate_order(cashierA, stallB, "Lamb", 7)
     #test add + commit
 
 
