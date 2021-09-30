@@ -1,6 +1,8 @@
 
 import unittest
 import sys
+import random
+
 # The Customer class
 # The Customer class represents a customer who will order from the stalls.
 class Customer: 
@@ -27,7 +29,10 @@ class Customer:
     
     # Submit_order takes a cashier, a stall and an amount as parameters, 
     # it deducts the amount from the customer’s wallet and calls the receive_payment method on the cashier object
-    def submit_order(self, cashier, stall, amount): 
+    def submit_order(self, cashier, stall, amount):
+        if cashier.num_orders % 10 == 0 and cashier.num_orders > 0:
+            if cashier.lucky_draw:
+                self.wallet += 10
         self.wallet = self.wallet - amount
         cashier.receive_payment(stall, amount)
 
@@ -44,7 +49,7 @@ class Cashier:
     def __init__(self, name, directory =[]):
         self.name = name
         self.directory = directory[:] # make a copy of the directory
-
+        self.num_orders = 0
     # Whether the stall is in the cashier's directory
     def has_stall(self, stall):
         return stall in self.directory
@@ -57,12 +62,25 @@ class Cashier:
     def receive_payment(self, stall, money):
         stall.earnings += money
 
+    def lucky_draw(self):
+        random_number = 0
+        if self.num_orders % 10 == 0:
+            random_number = random.randint(1, 20)
+            if random_number == 1:
+                return True
+            else:
+                return False
+        else:
+            return False
+        return False
+
     # Places an order at the stall.
 	# The cashier pays the stall the cost.
 	# The stall processes the order
 	# Function returns cost of the order, using compute_cost method
     def place_order(self, stall, item, quantity):
         stall.process_order(item, quantity)
+        self.num_orders += 1
         return stall.compute_cost(quantity) 
     
     # string function.
@@ -90,10 +108,6 @@ class Stall:
             if item == food_name:
                 if self.inventory[food_name] >= quantity:
                     return True
-                else:
-                    return False
-            else:
-                return False
         return False
 
     def stock_up(self, food_name, quantity):
@@ -178,8 +192,7 @@ class TestAllMethods(unittest.TestCase):
 
 	# Test that computed cost works properly.
     def test_compute_cost(self):
-        #what's wrong with the following statements?
-        #can you correct them?
+        #cost computation test case was incorrect
         self.assertEqual(self.s1.compute_cost(5), 50)
         self.assertEqual(self.s3.compute_cost(6), 42)
 
@@ -189,30 +202,34 @@ class TestAllMethods(unittest.TestCase):
         inventory = {"Burger": 10, "Banana": 20, "Split": 15}
         s4 = Stall("Banana Booth", inventory, cost = 3)
 
-       
         # Test to see if has_item returns True when a stall has enough items left
         # Please follow the instructions below to create three different kinds of test cases 
         # Test case 1: the stall does not have this food item: 
         self.assertFalse(s4.has_item("Apple", 10))
-   
+        self.assertFalse(s4.has_item("Apple", 0))
         # Test case 2: the stall does not have enough food item: 
         self.assertFalse(s4.has_item("Banana", 30))
-
+        self.assertFalse(s4.has_item("Burgers", 30))
         # Test case 3: the stall has the food item of the certain quantity: 
         self.assertTrue(s4.has_item("Burger", 9))
+        self.assertTrue(s4.has_item("Burger", 10))
+        self.assertTrue(s4.has_item("Burger", 0))
 
 	# Test validate order
     def test_validate_order(self):
+        # create inventories, stalls, and cashiers for testing
         inventory = {"Burger": 3, "Fruit": 10, "Split": 15}
         inventory2 = {"Zach": 3, "James": 10, "Jessica": 15}
         customer5 = Customer("Zach", 1)
         customer6 = Customer("Second", 1000)
         stall5 = Stall("Ban + Burg", inventory, 100)
-        stall6 = Stall("Ban + Burg", inventory2, 100)
+        stall6 = Stall("Ban + Burger", inventory2, 100)
         cashier5 = Cashier("B&B")
         cashier5.add_stall(stall5)
         
 		# case 1: test if a customer doesn't have enough money in their wallet to order
+        # nothing should happen to wallet
+        # nothing should happen to inventory
         self.assertEqual(customer5.wallet, 1)
         self.assertEqual(stall5.inventory["Burger"], 3)
         customer5.validate_order(cashier5, stall5, "Burger", 3)
@@ -220,18 +237,27 @@ class TestAllMethods(unittest.TestCase):
         self.assertEqual(customer5.wallet, 1)
        
 		# case 2: test if the stall doesn't have enough food left in stock
+        # nothing should happen to wallet
+        # nothing should happen to inventory
         self.assertEqual(customer5.wallet, 1)
         self.assertEqual(stall5.inventory["Burger"], 3)
         customer5.validate_order(cashier5, stall5, "Burger", 80)
         self.assertEqual(customer5.wallet, 1)
         self.assertEqual(stall5.inventory["Burger"], 3)
+
 		# case 3: check if the cashier can order item from that stall
+        # customer cannot order from this stall, and thus
+        # wallet should not be effected
+        # inventory should not be effected 
         self.assertEqual(customer5.wallet, 1)
         self.assertEqual(stall5.inventory["Burger"], 3)
         customer5.validate_order(cashier5, stall6, "Cheese", 1)
         self.assertEqual(stall5.inventory["Burger"], 3)
         self.assertEqual(customer5.wallet, 1)
 
+        # case 4: valid case, customer can order and does
+        # wallet should be effected, decrese by a specific amount
+        # inventory should be affected for the given item, decrease by order size
         self.assertEqual(customer6.wallet, 1000)
         self.assertEqual(stall5.inventory["Burger"], 3)
         customer6.validate_order(cashier5, stall5, "Burger", 3)
@@ -239,13 +265,14 @@ class TestAllMethods(unittest.TestCase):
         self.assertEqual(stall5.inventory["Burger"], 0)
         self.assertEqual(customer6.wallet, 700)
 
-
     # Test if a customer can add money to their wallet
     def test_reload_money(self):
         customer5 = Customer("Zach", 1)
         self.assertEqual(customer5.wallet, 1)
+        #adding some money
         customer5.reload_money(10)
         self.assertEqual(customer5.wallet, 11)
+        #adding no money
         customer5.reload_money(0)
         self.assertEqual(customer5.wallet, 11)
     
@@ -286,7 +313,6 @@ def main():
     customerB.validate_order(cashierA, stallB, "Lamb", 7)
     customerC.validate_order(cashierA, stallB, "Lamb", 7)
     #test add + commit
-
 
 if __name__ == "__main__":
 	main()
